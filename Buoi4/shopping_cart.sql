@@ -17,3 +17,14 @@ INSERT INTO products (name, price, quantity) VALUES
 ('Tai nghe', 500000.00, 8),
 ('Màn hình', 3200000.00, 5),
 ('Webcam', 750000.00, 7);
+
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL
+);
+
+-- Tai khoan mau: admin / Admin@123 (hash bcrypt, tuong thich password_verify cua PHP)
+INSERT IGNORE INTO users (username, password) VALUES
+('admin', '$2y$10$Rk4nfXWHpuSnHszE2dW91uxSoNDdLXuoXEwJ7ktyX9AhyVRc161AC');

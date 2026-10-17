@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . '/common/auth.php';
+checkLogin();
+
 require_once __DIR__ . '/model/product.php';
 
 $products = getAllProducts();
@@ -10,7 +13,7 @@ require_once __DIR__ . '/view/header.php';
 
 <h2>Danh sách sản phẩm</h2>
 
-<p><a href="product_add.php">Thêm sản phẩm</a></p>
+<p><a href="product_list.php">Danh sách sản phẩm</a> | <a href="product_add.php">Thêm sản phẩm</a></p>
 
 <table border="1" cellpadding="6" cellspacing="0">
     <thead>

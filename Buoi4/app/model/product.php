@@ -22,8 +22,10 @@ function getProductById($id)
     global $connection;
 
     $id = (int) $id;
-    $sql = "SELECT * FROM products WHERE id = $id";
-    $result = mysqli_query($connection, $sql);
+    $stmt = mysqli_prepare($connection, "SELECT * FROM products WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, "i", $id);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
     $product = mysqli_fetch_assoc($result);
 
     return $product;
@@ -33,12 +35,12 @@ function addProduct($name, $price, $quantity)
 {
     global $connection;
 
-    $name = mysqli_real_escape_string($connection, $name);
     $price = (float) $price;
     $quantity = (int) $quantity;
-    $sql = "INSERT INTO products (name, price, quantity) VALUES ('$name', $price, $quantity)";
+    $stmt = mysqli_prepare($connection, "INSERT INTO products (name, price, quantity) VALUES (?, ?, ?)");
+    mysqli_stmt_bind_param($stmt, "sdi", $name, $price, $quantity);
 
-    return mysqli_query($connection, $sql);
+    return mysqli_stmt_execute($stmt);
 }
 
 function updateProduct($id, $name, $price, $quantity)
@@ -46,12 +48,12 @@ function updateProduct($id, $name, $price, $quantity)
     global $connection;
 
     $id = (int) $id;
-    $name = mysqli_real_escape_string($connection, $name);
     $price = (float) $price;
     $quantity = (int) $quantity;
-    $sql = "UPDATE products SET name = '$name', price = $price, quantity = $quantity WHERE id = $id";
+    $stmt = mysqli_prepare($connection, "UPDATE products SET name = ?, price = ?, quantity = ? WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, "sdii", $name, $price, $quantity, $id);
 
-    return mysqli_query($connection, $sql);
+    return mysqli_stmt_execute($stmt);
 }
 
 function deleteProduct($id)
@@ -59,7 +61,15 @@ function deleteProduct($id)
     global $connection;
 
     $id = (int) $id;
-    $sql = "DELETE FROM products WHERE id = $id";
+    $stmt = mysqli_prepare($connection, "DELETE FROM products WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, "i", $id);
+    $ok = mysqli_stmt_execute($stmt);
 
-    return mysqli_query($connection, $sql);
+    if ($ok) {
+        $result = mysqli_query($connection, "SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM products");
+        $row = mysqli_fetch_assoc($result);
+        mysqli_query($connection, "ALTER TABLE products AUTO_INCREMENT = " . (int) $row['next_id']);
+    }
+
+    return $ok;
 }

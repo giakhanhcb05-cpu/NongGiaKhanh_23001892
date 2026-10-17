@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . '/common/auth.php';
+checkLogin();
+
 require_once __DIR__ . '/model/product.php';
 
 $id = 0;

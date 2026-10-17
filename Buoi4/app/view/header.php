@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../common/auth.php';
+
 if (!isset($pageTitle)) {
     $pageTitle = 'Quản lý sản phẩm';
 }
@@ -16,8 +18,12 @@ if (!isset($pageTitle)) {
         <h1>Quản lý sản phẩm</h1>
         <nav>
             <a href="index.php">Trang chủ</a>
-            <a href="product_list.php">Danh sách sản phẩm</a>
-            <a href="product_add.php">Thêm sản phẩm</a>
+            <?php if (isset($_SESSION["username"])): ?>
+                <span>Xin chào, <?= htmlspecialchars($_SESSION["username"]) ?> | <a href="logout.php">Đăng xuất</a></span>
+            <?php else: ?>
+                <a href="login.php">Đăng nhập</a>
+                <a href="register.php">Đăng ký</a>
+            <?php endif; ?>
         </nav>
     </header>
     <main>
