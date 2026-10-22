@@ -12,7 +12,7 @@ $students = [
         "score" => 6.5
     ],
     [
-        "name" => "Le Van Cuong",
+        "name" => "Le Van Cuong",   
         "age" => 19,
         "score" => 4.5
     ],
@@ -23,7 +23,7 @@ $students = [
     ]
 ];
 
-function findBestStudent($students)
+function findBestStudent(array $students): array
 {
     $bestStudent = $students[0];
 
@@ -36,7 +36,7 @@ function findBestStudent($students)
     return $bestStudent;
 }
 
-function findWorstStudent($students)
+function findWorstStudent(array $students): array
 {
     $worstStudent = $students[0];
 
@@ -49,7 +49,7 @@ function findWorstStudent($students)
     return $worstStudent;
 }
 
-function countPassedStudents($students)
+function countPassedStudents(array $students): int
 {
     $count = 0;
 
@@ -62,7 +62,7 @@ function countPassedStudents($students)
     return $count;
 }
 
-function findStudentByName($students, $name)
+function findStudentByName(array $students, string $name): ?array
 {
     foreach ($students as $student) {
         if ($student["name"] == $name) {
