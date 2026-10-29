@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bài 2 - Đặt vé xem phim</title>
+  <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 30px; }
+    .box { background: #fff; width: 440px; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+    .row { margin: 12px 0; }
+    label.t { display: block; font-weight: bold; margin-bottom: 4px; }
+    input[type=text], select { width: 100%; padding: 7px; box-sizing: border-box; }
+    input.qty { width: 60px; text-align: center; padding: 6px; }
+    button { padding: 7px 14px; border: 0; border-radius: 6px; cursor: pointer; background: #1e6fd9; color: #fff; }
+    button:disabled { background: #aaa; cursor: not-allowed; }
+    button.gray { background: #777; }
+    .err { color: #d62828; font-size: 13px; }
+    .total { font-size: 18px; font-weight: bold; color: #d62828; }
+    .confirm { margin-top: 16px; padding: 12px; background: #e8f7ec; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <div id="app" class="box">
+    <h2>Đặt vé xem phim</h2>
+    <form @submit.prevent="submit">
+      <div class="row">
+        <label class="t">Họ tên</label>
+        <input type="text" v-model.trim="name" placeholder="Nhập họ tên">
+      </div>
+
+      <div class="row">
+        <label class="t">Suất chiếu</label>
+        <select v-model="showtime">
+          <option v-for="s in showtimes" :key="s" :value="s">{{ s }}</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <label class="t">Loại vé</label>
+        <label v-for="t in ticketTypes" :key="t.key">
+          <input type="radio" v-model="type" :value="t.key"> {{ t.label }} ({{ fmt(t.price) }})
+        </label>
+      </div>
+
+      <div class="row">
+        <label class="t">Số lượng (1 - 10)</label>
+        <button type="button" @click="dec">-</button>
+        <input class="qty" type="number" v-model.number="qty" min="1" max="10">
+        <button type="button" @click="inc">+</button>
+        <div class="err" v-if="!qtyValid">Số lượng phải là số nguyên từ 1 đến 10.</div>
+      </div>
+
+      <div class="row">
+        <label><input type="checkbox" v-model="combo"> Combo bắp nước (+{{ fmt(comboPrice) }})</label>
+      </div>
+
+      <div class="row total">Tổng tiền: {{ fmt(total) }}</div>
+
+      <button type="submit" :disabled="!canSubmit">Đặt vé</button>
+      <button type="button" class="gray" @click="reset">Đặt lại</button>
+    </form>
+
+    <div class="confirm" v-if="result">
+      <strong>Đặt vé thành công!</strong><br>
+      Khách hàng: {{ result.name }}<br>
+      Suất chiếu: {{ result.showtime }}<br>
+      Loại vé: {{ result.typeLabel }} x {{ result.qty }}<br>
+      Combo bắp nước: {{ result.combo ? 'Có' : 'Không' }}<br>
+      Tổng tiền: <strong>{{ fmt(result.total) }}</strong>
+    </div>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+    const initial = () => ({
+      name: '', showtime: '09:00', type: 'normal', qty: 1, combo: false, result: null
+    });
+    createApp({
+      data() {
+        return {
+          ...initial(),
+          showtimes: ['09:00', '14:30', '19:45', '22:00'],
+          ticketTypes: [
+            { key: 'normal', label: 'Vé thường', price: 70000 },
+            { key: 'vip', label: 'Vé VIP', price: 100000 }
+          ],
+          comboPrice: 45000
+        };
+      },
+      computed: {
+        currentType() { return this.ticketTypes.find(t => t.key === this.type); },
+        qtyValid() { return Number.isInteger(this.qty) && this.qty >= 1 && this.qty <= 10; },
+        canSubmit() { return this.name !== '' && this.qtyValid; },
+        total() {
+          const q = this.qtyValid ? this.qty : 0;
+          return this.currentType.price * q + (this.combo ? this.comboPrice : 0);
+        }
+      },
+      methods: {
+        fmt(n) { return n.toLocaleString('vi-VN') + ' đồng'; },
+        inc() { this.qty = this.qtyValid ? Math.min(10, this.qty + 1) : 1; },
+        dec() { this.qty = this.qtyValid ? Math.max(1, this.qty - 1) : 1; },
+        reset() { Object.assign(this, initial()); },
+        submit() {
+          if (!this.canSubmit) return;
+          this.result = {
+            name: this.name, showtime: this.showtime, typeLabel: this.currentType.label,
+            qty: this.qty, combo: this.combo, total: this.total
+          };
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

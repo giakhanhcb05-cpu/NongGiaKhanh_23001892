@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bài 1 - Thẻ thông tin sinh viên</title>
+  <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 30px; }
+    .card { background: #fff; width: 360px; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,.15); text-align: center; }
+    .card img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #ddd; }
+    h2 { margin: 12px 0 4px; }
+    p { margin: 6px 0; }
+    .rank { font-weight: bold; font-size: 18px; }
+    .gioi { color: #1a9c3c; }
+    .kha { color: #1e6fd9; }
+    .trungbinh { color: #e08a00; }
+    .chuadat { color: #d62828; }
+    .status-on { color: #1a9c3c; }
+    .status-off { color: #888; }
+    button { margin: 6px 4px; padding: 6px 12px; cursor: pointer; border: 0; border-radius: 6px; background: #1e6fd9; color: #fff; }
+    .intro { background: #f7f7f7; padding: 10px; border-radius: 8px; text-align: left; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div id="app" class="card">
+    <img :src="student.avatar" :alt="'Ảnh đại diện của ' + student.name">
+    <h2>{{ student.name }}</h2>
+    <p>Mã SV: {{ student.id }}</p>
+    <p>Lớp: <span v-text="student.className"></span></p>
+    <p>Điểm trung bình: {{ student.gpa }}</p>
+    <p class="rank">Xếp loại: <span :class="rankClass">{{ rank }}</span></p>
+    <p :class="student.studying ? 'status-on' : 'status-off'">
+      {{ student.studying ? 'Đang học' : 'Đã nghỉ' }}
+    </p>
+
+    <div>
+      <button @click="student.gpa = Math.min(10, +(student.gpa + 0.5).toFixed(1))">Tăng điểm</button>
+      <button @click="student.gpa = Math.max(0, +(student.gpa - 0.5).toFixed(1))">Giảm điểm</button>
+      <button @click="student.studying = !student.studying">Đổi trạng thái</button>
+    </div>
+    <button @click="showIntro = !showIntro">{{ showIntro ? 'Ẩn' : 'Hiện' }} giới thiệu</button>
+    <div class="intro" v-show="showIntro">
+      Xin chào, mình là {{ student.name }}, sinh viên lớp {{ student.className }}. Mình yêu thích lập trình web.
+    </div>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+    createApp({
+      data() {
+        return {
+          student: {
+            id: 'SV001',
+            name: 'Duy Wibu',
+            className: 'K68A2',
+            avatar: 'lena.png',
+            gpa: 7.2,
+            studying: true
+          },
+          showIntro: true
+        };
+      },
+      computed: {
+        rank() {
+          const g = this.student.gpa;
+          if (g >= 8) return 'Giỏi';
+          if (g >= 6.5) return 'Khá';
+          if (g >= 5) return 'Trung bình';
+          return 'Chưa đạt';
+        },
+        rankClass() {
+          return {
+            gioi: this.rank === 'Giỏi',
+            kha: this.rank === 'Khá',
+            trungbinh: this.rank === 'Trung bình',
+            chuadat: this.rank === 'Chưa đạt'
+          };
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
