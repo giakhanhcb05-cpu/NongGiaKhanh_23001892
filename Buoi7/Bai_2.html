@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bài 2 - Danh mục sản phẩm bằng component</title>
+  <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
+  <script src="components/TheSanPham.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 30px; }
+    h2 { text-align: center; }
+    .list { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; align-items: flex-start; }
+    .card { background: #fff; width: 220px; border-radius: 12px; padding: 14px; box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+    .card img { width: 100%; height: 150px; object-fit: cover; }
+    .gia { color: #d62828; font-weight: bold; }
+    .het { color: red; font-weight: bold; }
+    .mota { background: #eee; padding: 8px; border-radius: 6px; }
+    button { padding: 7px 12px; border: 0; border-radius: 6px; cursor: pointer; background: #1e6fd9; color: #fff; }
+    button.xem { background: #777; }
+    button:disabled { background: #bbb; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h2>Danh mục sản phẩm</h2>
+    <div class="list">
+      <the-san-pham v-for="sp in products" :key="sp.id"
+        :ten="sp.ten" :gia="sp.gia" :anh="sp.anh" :mota="sp.mota" :tonkho="sp.tonkho">
+      </the-san-pham>
+    </div>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+    const app = createApp({
+      data() {
+        return {
+          products: [
+            { id: 1, ten: 'iPhone 15', gia: 22000000, anh: 'lena.png', mota: 'Điện thoại Apple, camera 48MP', tonkho: 10 },
+            { id: 2, ten: 'MacBook Air', gia: 27000000, anh: 'lena.png', mota: 'Laptop mỏng nhẹ, pin lâu', tonkho: 3 },
+            { id: 3, ten: 'Tai nghe AirPods', gia: 4500000, anh: 'lena.png', mota: 'Tai nghe không dây', tonkho: 0 },
+            { id: 4, ten: 'Chuột Logitech', gia: 600000, anh: 'lena.png', mota: 'Chuột không dây Bluetooth', tonkho: 25 }
+          ]
+        };
+      }
+    });
+    // đăng ký component trước khi mount
+    app.component('the-san-pham', TheSanPham);
+    app.mount('#app');
+  </script>
+</body>
+</html>
