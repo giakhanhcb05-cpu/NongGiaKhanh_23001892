@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý sản phẩm</title>
+  <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 30px; }
+    .box { background: #fff; width: 700px; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th, td { border-bottom: 1px solid #eee; padding: 8px; text-align: left; }
+    th { background: #f5f7fa; }
+    td.num, th.num { text-align: right; }
+    form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    label { font-size: 13px; display: flex; flex-direction: column; gap: 2px; }
+    input { padding: 6px; border: 1px solid #ccc; border-radius: 6px; }
+    button { padding: 6px 12px; border: 0; border-radius: 6px; cursor: pointer; background: #1e6fd9; color: #fff; }
+    button.del { background: #d62828; }
+    button.gray { background: #777; }
+    .msg { margin: 10px 0; padding: 8px; border-radius: 6px; background: #fdecec; color: #d62828; }
+    .ok { background: #e8f6ec; color: #1b7a38; }
+    .empty { text-align: center; color: #888; padding: 14px; }
+  </style>
+</head>
+<body>
+  <div id="app" class="box">
+    <h2>Quản lý sản phẩm</h2>
+
+    <div class="msg" :class="{ ok: !isError }" v-if="message">{{ message }}</div>
+
+    <table>
+      <thead>
+        <tr><th>Tên sản phẩm</th><th class="num">Đơn giá</th><th class="num">Số lượng tồn</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr v-for="p in products" :key="p.id">
+          <td>{{ p.name }}</td>
+          <td class="num">{{ p.price.toLocaleString('vi-VN') }} đ</td>
+          <td class="num">{{ p.stock }}</td>
+          <td>
+            <button @click="startEdit(p)">Sửa</button>
+            <button class="del" @click="removeProduct(p)">Xóa</button>
+          </td>
+        </tr>
+        <tr v-if="loaded && products.length === 0"><td colspan="4" class="empty">Chưa có sản phẩm</td></tr>
+      </tbody>
+    </table>
+
+    <h3>{{ editingId ? 'Sửa sản phẩm' : 'Thêm sản phẩm' }}</h3>
+    <form @submit.prevent="save">
+      <label>Tên sản phẩm <input v-model="form.name" placeholder="Tên sản phẩm" maxlength="100"></label>
+      <label>Đơn giá <input v-model.number="form.price" type="number" min="1" placeholder="Đơn giá"></label>
+      <label>Số lượng tồn <input v-model.number="form.stock" type="number" min="0" placeholder="Số lượng tồn"></label>
+      <button type="submit" :disabled="saving">Lưu</button>
+      <button type="button" class="gray" v-if="editingId" @click="resetForm">Hủy</button>
+    </form>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+    const API = 'api/products.php';
+
+    createApp({
+      data() {
+        return {
+          products: [],
+          form: { name: '', price: '', stock: '' },
+          editingId: null,
+          message: '',
+          isError: false,
+          saving: false,
+          loaded: false
+        };
+      },
+      mounted() {
+        this.load();
+      },
+      methods: {
+        notify(text, error = false) {
+          this.message = text;
+          this.isError = error;
+          clearTimeout(this._t);
+          if (!error) this._t = setTimeout(() => { this.message = ''; }, 3000);
+        },
+        async call(url, method, body) {
+          this.message = '';
+          let res;
+          try {
+            res = await fetch(url, {
+              method,
+              headers: { 'Content-Type': 'application/json' },
+              body: body ? JSON.stringify(body) : undefined
+            });
+          } catch (e) {
+            this.notify('Không kết nối được máy chủ', true);
+            return null;
+          }
+          let json;
+          try {
+            json = await res.json();
+          } catch (e) {
+            this.notify('Máy chủ trả dữ liệu không hợp lệ (HTTP ' + res.status + ')', true);
+            return null;
+          }
+          if (!json.success) {
+            this.notify(json.message || 'Có lỗi xảy ra', true);
+            return null;
+          }
+          return json;
+        },
+        async load() {
+          const json = await this.call(API, 'GET');
+          if (json) {
+            this.products = json.data;
+            this.loaded = true;
+          }
+        },
+        startEdit(p) {
+          this.editingId = p.id;
+          this.form = { name: p.name, price: p.price, stock: p.stock };
+          this.message = '';
+        },
+        resetForm() {
+          this.editingId = null;
+          this.form = { name: '', price: '', stock: '' };
+          this.message = '';
+        },
+        async save() {
+          if (this.saving) return;
+          this.saving = true;
+          try {
+            const url = this.editingId ? `${API}?id=${this.editingId}` : API;
+            const json = await this.call(url, this.editingId ? 'PUT' : 'POST', this.form);
+            if (json) {
+              this.resetForm();
+              await this.load();
+              this.notify(json.message);
+            }
+          } finally {
+            this.saving = false;
+          }
+        },
+        async removeProduct(p) {
+          if (!confirm(`Xóa sản phẩm "${p.name}"?`)) return;
+          const json = await this.call(`${API}?id=${p.id}`, 'DELETE');
+          if (json) {
+            if (this.editingId === p.id) this.resetForm();
+            await this.load();
+            this.notify(json.message);
+          }
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
